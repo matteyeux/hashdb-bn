@@ -41,7 +41,7 @@
 ########################################################################################
 
 import sys
-from binaryninja import BinaryReader, Settings, log_error, log_info, log_warn, interaction, enums
+from binaryninja import BinaryReader, Settings, log_error, log_info, log_warn, interaction, enums, types
 from binaryninjaui import (UIAction, UIActionHandler, Menu, DockHandler, UIContext)
 import requests
 import json
@@ -226,7 +226,6 @@ def hash_lookup(context):
             string_value = hash_string.get('string','')
 
         log_info(f"Hash match found: {string_value}")
-        # TODO: Add hash to enum
         if hash_string.get('is_api',False):
             # If the hash is an API ask if the user wants to 
             # import all of the hashes from the module and permutation
@@ -244,14 +243,9 @@ def hash_lookup(context):
                     for function_entry in module_hash_list.get('hashes',[]):
                         # If xor is enabled we must convert the hashes
                         enum_list.append((function_entry.get('string',{}).get('api',''),HASHDB_XOR_VALUE^function_entry.get('hash',0)))
-                    # Add hashes to enum
-                    #TODO: Add hashes for the module
-                    print(enum_list)
-                    #enum_id = add_enums(ENUM_NAME, enum_list)
-                    #if enum_id == None:
-                        #idaapi.msg("ERROR: Unable to create or find enum: %s\n" % ENUM_NAME)
-                    #else:
-                        #idaapi.msg("Added %d hashes for module %s\n" % (len(enum_list),module_name))
+
+                    bv.define_user_type(f"hashdb_string_{HASHDB_ALGORITHM}", types.Type.enumeration(arch=bv.arch, members=enum_list))
+                    log_info(f"Added {len(enum_list)} hashes for {module_name}")
                 except Exception as e:
                     log_error(f"HashDB: ERROR {e}")
                     return
