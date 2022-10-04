@@ -159,7 +159,7 @@ def set_xor_key(context):
     else:
         log_info(f"HashDB: failed to set XOR key.")
         return False
-    
+
 
 #--------------------------------------------------------------------------
 # Hash lookup
@@ -244,7 +244,7 @@ def hash_lookup(context):
                         # If xor is enabled we must convert the hashes
                         enum_list.append((function_entry.get('string',{}).get('api',''),HASHDB_XOR_VALUE^function_entry.get('hash',0)))
 
-                    bv.define_user_type(f"hashdb_string_{HASHDB_ALGORITHM}", types.Type.enumeration(arch=bv.arch, members=enum_list))
+                    add_enum(bv, f"hashdb_string_{HASHDB_ALGORITHM}", enum_list)
                     log_info(f"Added {len(enum_list)} hashes for {module_name}")
                 except Exception as e:
                     log_error(f"HashDB: ERROR {e}")
@@ -252,7 +252,17 @@ def hash_lookup(context):
     else:
         log_error("HashDB: Invalid hash selected.")
         return
-    return 
+    return
+
+
+def add_enum(bv, enum_name, hash_list):
+    enum_list = []
+    for enum in bv.types:
+        if enum_name == enum[0]:
+            enum_list+=enum[1].members
+            break
+    enum_list+=hash_list
+    bv.define_user_type(enum_name, types.Type.enumeration(arch=bv.arch, members=enum_list))
 
 
 def change_hash(context):
@@ -269,7 +279,7 @@ def get_hash(bv):
         HASHDB_ALGORITHM = bv.query_metadata("HASHDB_ALGORITHM")
     except:
         pass
-    
+
     if HASHDB_ALGORITHM is None:
         algorithms = get_algorithms()
         algorithms.sort()
