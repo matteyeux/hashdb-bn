@@ -317,6 +317,7 @@ def hash_scan(context):
         br = BinaryReader(bv, bv.endianness)
         br.seek(context.address)
         while br.offset < (context.address + context.length):
+            data_var = bv.get_data_var_at(br.offset)
             hash_value = br.read32()
             hash_results = get_strings_from_hash(HASHDB_ALGORITHM, hash_value, xor_value=HASHDB_XOR_VALUE)
 
@@ -349,6 +350,7 @@ def hash_scan(context):
             else:
                 string_value = hash_string.get('string','')
             log_info(f"HashDB: Hash match found: {string_value}")
+            data_var.name = f"ptr_{string_value}"
             # Add hash to enum
             # TODO
     except Exception as e:
